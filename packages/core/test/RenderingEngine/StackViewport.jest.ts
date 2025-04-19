@@ -34,6 +34,7 @@ fdescribe('StackViewport', () => {
 
   const mockRenderer = mock<vtkRenderer>();
   mockRenderer.getActiveCamera.mockReturnValue(mockCamera);
+  mockRenderer.computeVisiblePropBounds.mockReturnValue([0, 1, 0, 1, 0, 1]);
 
   mockRenderingEngine = mock<IRenderingEngine>();
   mockRenderingEngine.hasBeenDestroyed = false;
@@ -43,6 +44,6 @@ fdescribe('StackViewport', () => {
 
   it('should create a StackViewport instance', () => {
     const stackViewport = new StackViewport(props);
-    expect(stackViewport).not.toBeInstanceOf(StackViewport);
+    expect(stackViewport).toBeInstanceOf(StackViewport);
   });
 });
