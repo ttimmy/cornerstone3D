@@ -4,6 +4,12 @@ const path = require('path');
 
 module.exports = {
   ...base,
+  testMatch: [
+    ...base.testMatch,
+
+    // Add TS files
+    '<rootDir>/test/**/*.jest.ts'
+  ],
   displayName: 'core',
   setupFiles: ['jest-canvas-mock'],
   moduleNameMapper: {
