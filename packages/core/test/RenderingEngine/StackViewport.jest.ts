@@ -1,15 +1,24 @@
-import type { IRenderingEngine, ViewportInput } from 'core/src/types';
-import { mock } from 'jest-mock-extended';
-let mockRenderingEngine = mock<IRenderingEngine>();
-jest.mock('../../src/RenderingEngine/renderingEngineCache', () => ({
-  get: () => mockRenderingEngine
-}));
-import StackViewport from '../../src/RenderingEngine/StackViewport';
+import type { IImage, IRenderingEngine, ViewportInput } from 'core/src/types';
+import { mock, type MockProxy } from 'jest-mock-extended';
 import ViewportType from '../../src/enums/ViewportType';
 import vtkRenderer from '@kitware/vtk.js/Rendering/Core/Renderer';
 import type vtkCamera from '@kitware/vtk.js/Rendering/Core/Camera';
 
-fdescribe('StackViewport', () => {
+let mockRenderingEngine: MockProxy<IRenderingEngine> = mock<IRenderingEngine>();
+jest.mock('../../src/RenderingEngine/renderingEngineCache', () => ({
+  get: () => mockRenderingEngine
+}));
+
+let mockLoadAndCacheImage = jest.fn();
+jest.mock('../../src/loaders/imageLoader', () => ({
+  loadAndCacheImage: () =>  {
+    return mockLoadAndCacheImage;
+  }
+}));
+
+import StackViewport from '../../src/RenderingEngine/StackViewport';
+
+describe('StackViewport', () => {
 
   const props: ViewportInput = {
     id: 'viewport',
@@ -21,7 +30,7 @@ fdescribe('StackViewport', () => {
     sWidth: 100,
     sHeight: 100,
     defaultOptions: {
-
+      background: [0, 0, 0]
     },
     canvas: mock<HTMLCanvasElement>()
   };
@@ -46,4 +55,23 @@ fdescribe('StackViewport', () => {
     const stackViewport = new StackViewport(props);
     expect(stackViewport).toBeInstanceOf(StackViewport);
   });
+
+  describe('setting a stack', () => {
+
+    beforeEach(() => {
+      mockLoadAndCacheImage.mockClear();
+      mockLoadAndCacheImage.mockReturnValue(Promise.resolve(mock<IImage>()));
+    });
+
+    fit('should fill with the default background color', async () => {
+      const stackViewport = new StackViewport(props);
+      mockRenderingEngine.fillCanvasWithBackgroundColor.mockClear();
+      await stackViewport.setStack(['image1'], 0);
+      expect(
+        mockRenderingEngine.fillCanvasWithBackgroundColor.mock.calls[0][1]
+      ).toEqual([0, 0, 0]);
+
+    });
+  });
+
 });
